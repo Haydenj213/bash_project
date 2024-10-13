@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Function to display script usage/help page
+function display_usage() {
+echo "Usage: ./file_permissions_manager -p <filename> OR -f <filename>"
+echo "Options:"
+echo "  -p <filename>: current permission settings for <filename>."
+echo "  -f <filename>: edit permission settings for <filename>."
+echo "  -h: Display this help information."
+}
+
+#Display if no arguments are present or if help option was selected.
+if [[ $# -eq 0 || "$1" == "-h" ]]; then
+    display_usage
+    exit 0
+fi
+
+#Function setup for displaying permissions for the file, and returning display usage if it does not exist.
+function display_permissions() {
+    if [[ -e $1 ]]; then
+        ls -l "$1"
+    else
+        echo "File $1 does not exist."
+        display_usage
+        exit 0
+    fi
+}
+
+#Function setup for displaying the edit permissions prompt that allows for the user to change permissions using the chmod command. Display usage if no valid input.
+function edit_permissions() {
+    if [[ -e $1 ]]; then
+        echo "Enter new permissions for $1:"
+        read new_permissions
+        chmod "$new_permissions" "$1"
+        echo "Permissions for $1 have been changed."
+    else
+        echo "File $1 does not exist."
+        display_usage
+        exit 0
+    fi
+}
+
+#Process command-line options and arugments for the above functions.
+while getopts ":p:f:" opt; do
+    case $opt in
+        p) #option p
+            display_permissions "$OPTARG"
+            ;;
+        f) #option f
+            edit_permissions "$OPTARG"
+            ;;
+        h) #option h
+            display_usage
+            exit 0
+            ;;
+        \?) #any other option
+            echo "Invalid option: -$OPTARG" 
+            display_usage
+            exit 0
+            ;;
+        :) #no argument
+            echo "Option -$OPTARG requires an argument."
+            display_usage
+            exit 1
+            ;;
+    esac
+done
+
